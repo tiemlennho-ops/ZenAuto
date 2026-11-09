@@ -1,0 +1,30 @@
+name: Build APK
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sap xep file
+        run: |
+          mkdir -p app/src/main/java/com/zen/auto app/src/main/res/xml app/src/main/res/values
+          mv build.gradle.kts app/build.gradle.kts
+          mv AndroidManifest.xml app/src/main/
+          mv AutoService.kt MainActivity.kt app/src/main/java/com/zen/auto/
+          mv accessibility_config.xml app/src/main/res/xml/
+          mv strings.xml app/src/main/res/values/
+          printf '%s\n' 'plugins {' '    id("com.android.application") version "8.5.2" apply false' '    id("org.jetbrains.kotlin.android") version "1.9.24" apply false' '}' > build.gradle.kts
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.7
+      - run: gradle assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ZenAuto-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
